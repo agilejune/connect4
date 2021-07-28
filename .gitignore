@@ -1,0 +1,16 @@
+Connect4/Temp/
+Connect4/Library/
+Connect4/Build/
+Connect4/Logs
+Connect4/obj
+Connect4/.vs
+Connect4/.vsconfig
+Connect4/*.sln
+Connect4/*.csproj
+Connect4/*.userprefs
+**/*.vscode
+**/*.sublime-workspace
+**/*.sublime-project
+*.DS_Store
+*/*.DS_Store
+*.apk
