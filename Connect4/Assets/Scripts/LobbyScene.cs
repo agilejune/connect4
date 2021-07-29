@@ -144,7 +144,7 @@ public class LobbyScene : MonoBehaviour
 
     private IEnumerator CreateGameCoroutine(int rows, int cols, int n)
     {
-        var ret = Network.instance.CreateGame("connect", new JSONObject(obj=>
+        var ret = Network.instance.CreateGame("connect", $"R{rows} C{cols} N{n}", new JSONObject(obj=>
         {
             obj.AddField("rows", rows);
             obj.AddField("cols", cols);

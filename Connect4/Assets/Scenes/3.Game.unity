@@ -478,7 +478,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 1, g: 0.86267257, b: 0, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1210,7 +1210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1465,6 +1465,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ad5253f1fa5f124f93b16e4a766b796, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sceneOnDisconnect: 
+  sceneOnError: 
   onScoresUpdate:
     m_PersistentCalls:
       m_Calls: []

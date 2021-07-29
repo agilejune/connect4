@@ -47,8 +47,9 @@ public class Network : MonoBehaviour
     {
         private Network network;
 
-        public string type { get; private set; }
         public string id { get; private set; }
+        public string type { get; private set; }
+        public string desc { get; private set; }
         public string owner { get; private set; }
 
         public JSONObject data { get; private set; }
@@ -57,8 +58,9 @@ public class Network : MonoBehaviour
 
         public void ParseJson(JSONObject json)
         {
-            type = json["type"].str;
             id = json["id"].str;
+            type = json["type"].str;
+            desc = json["desc"].str;
             owner = json["owner"].str;
             data = json["data"];
             players = json["players"].list.Select(i => i.str).ToArray();
@@ -116,6 +118,14 @@ public class Network : MonoBehaviour
         io.On("gameDestroyed", OnGameDestroyed);
     }
 
+    private void Init()
+    {
+        _playerid = null;
+        _scores.Clear();
+        _players.Clear();
+        _games.Clear();
+    }
+
     public CustomYieldInstruction WaitForDisconnect()
     {
         return new WaitUntil(() => !_connected);
@@ -151,13 +161,14 @@ public class Network : MonoBehaviour
         return ret;
     }
 
-    public FutureValue<string> CreateGame(string type, JSONObject data)
+    public FutureValue<string> CreateGame(string type, string desc, JSONObject data)
     {
         var ret = new FutureValue<string>();
 
         io.Emit("createGame", new JSONObject((obj) =>
         {
             obj.AddField("type", type);
+            obj.AddField("desc", desc);
             obj.AddField("data", data);
         }), (result) =>
         {
@@ -220,6 +231,8 @@ public class Network : MonoBehaviour
 
         Debug.Log("SocketIO disconnected");
 
+        Init();
+
         if (!string.IsNullOrEmpty(sceneOnDisconnect)
             && string.Compare(SceneManager.GetActiveScene().name, sceneOnDisconnect, true) != 0)
         {
@@ -230,6 +243,8 @@ public class Network : MonoBehaviour
     private void OnError(SocketIOEvent e)
     {
         Debug.LogWarning($"SocketIO error");
+
+        Init();
 
         if (!string.IsNullOrEmpty(sceneOnError)
             && string.Compare(SceneManager.GetActiveScene().name, sceneOnError, true) != 0)

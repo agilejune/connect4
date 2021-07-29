@@ -26,7 +26,6 @@ module.exports = (context) => {
         let playerIndex;
 
         socket.on('playerReady', () => {
-            playerIndex = game.players.indexOf(player.id);
             ready.fill(false);
 
             io.in(game.id).emit('_join', { playerid: player.id });
@@ -35,13 +34,13 @@ module.exports = (context) => {
                 state = 'ready';
                 io.in(game.id).emit('_ready');
             }
-    
         });
 
         socket.on('_ready', () => {
             if (state !== 'ready')
                 return;
 
+            playerIndex = game.players.indexOf(player.id);
             ready[playerIndex] = true;
 
             console.log(`Game: ${game.id}, Player: ${player.id}, ready`);

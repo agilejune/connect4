@@ -43,6 +43,7 @@ public class ConnectGameController : MonoBehaviour
 
         io.On("_ready", OnReady);
         io.On("_start", OnStart);
+        io.On("_turn", OnTurn);
         io.On("_drop", OnDrop);
         io.On("_end", OnEnd);
 
@@ -58,7 +59,8 @@ public class ConnectGameController : MonoBehaviour
     private void OnDisable()
     {
         io.Off("_ready", OnReady);
-        io.Off("_ready", OnStart);
+        io.Off("_start", OnStart);
+        io.Off("_turn", OnTurn);
         io.Off("_drop", OnDrop);
         io.Off("_end", OnEnd);
 
@@ -170,6 +172,12 @@ public class ConnectGameController : MonoBehaviour
         losePanel.SetActive(false);
         readyButton.SetActive(false);
 
+        foreach (var text in playerTexts)
+        {
+            text.DOKill();
+            text.DOFade(1, 0f);
+        }
+
         UpdatePlayerTexts();
     }
 
@@ -188,6 +196,20 @@ public class ConnectGameController : MonoBehaviour
     {
         Debug.Log("SERVER -> start: " + e.data);
         readyButton.SetActive(false);
+    }
+
+    private void OnTurn(SocketIOEvent e)
+    {
+        Debug.Log("SERVER -> turn: " + e.data);
+
+        foreach (var text in playerTexts)
+        {
+            text.DOKill();
+            text.DOFade(1, 0f);
+        }
+
+        var turn = (int)e.data["turn"].n;
+        playerTexts[turn].DOFade(0, .25f).SetLoops(-1, LoopType.Yoyo);
     }
 
     private void OnDrop(SocketIOEvent e)
@@ -213,6 +235,12 @@ public class ConnectGameController : MonoBehaviour
         else
         {
             losePanel.SetActive(true);
+        }
+
+        foreach (var text in playerTexts)
+        {
+            text.DOKill();
+            text.DOFade(1, 0f);
         }
 
         UpdatePlayerTexts();

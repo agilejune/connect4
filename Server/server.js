@@ -111,6 +111,7 @@ io.on('connection', (socket) => {
 
   socket.on('createGame', (data, fn) => {
     const gametype = data.type;
+    const gamedesc = data.desc;
     const gamedata = data.data;
 
     console.log(`Player try to create game: player=(${thisPlayer.name}:${thisPlayer.id})`);
@@ -120,6 +121,7 @@ io.on('connection', (socket) => {
         id: shortid.generate(),
         owner: thisPlayer.id,
         type: gametype,
+        desc: gamedesc,
         data: gamedata,
         players: [thisPlayer.id],
       };
