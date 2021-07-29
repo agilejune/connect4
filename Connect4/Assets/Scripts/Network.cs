@@ -206,13 +206,13 @@ public class Network : MonoBehaviour
 
     private void OnError(SocketIOEvent e)
     {
-        Debug.LogWarning("SocketIO error");
+        Debug.LogWarning($"SocketIO error");
     }
 
     private void OnUpdateScore(SocketIOEvent e)
     {
         Debug.Log("SERVER -> updateScore: " + e.data);
-        _scores = e.data.keys.ToDictionary(k => k, k => (int)e.data[k].n);
+        _scores = e.data["scores"].list.ToDictionary(p=>p["name"].str, p => (int)p["score"].n);
 
         onScoresUpdate.Invoke();
     }

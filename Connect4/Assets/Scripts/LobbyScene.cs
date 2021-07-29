@@ -58,7 +58,10 @@ public class LobbyScene : MonoBehaviour
     private void CreateScoreBoard()
     {
         for (int i = 0; i < 10; ++i)
-            Instantiate(scorePrefab, scoreBoardPanel);
+        {
+            var text = Instantiate(scorePrefab, scoreBoardPanel);
+            text.text = string.Empty;
+        }
     }
 
     private void UpdateScoreBoard()

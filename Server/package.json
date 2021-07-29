@@ -5,6 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.17.1",
+    "mongoose": "^5.13.4",
     "shortid": "^2.2.16",
     "socket.io": "^2.4.1"
   },

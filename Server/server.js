@@ -1,11 +1,11 @@
 const io = require('socket.io')(process.env.PORT || 3000);
 const shortid = require('shortid');
+const mongoose = require('mongoose');
 
 console.log('server started');
 
 const players = new Map();
 const _playerNameToIdMap = new Map();
-const scores = {};
 const games = new Map();
 
 const controllerFactories = {
@@ -14,20 +14,25 @@ const controllerFactories = {
 
 const controllers = new Map();
 
-initScore();
+mongoose.connect('mongodb://localhost:27017/connect', {useNewUrlParser: true, useUnifiedTopology: true});
 
-function initScore() {
-  for (let i = 0; i < 20; ++i) {
-    scores[`Player ${i+1}`] = 100 * i;
-  }
+const playerSchema = mongoose.Schema({
+  name: String,
+  score: Number,
+});
+const Player = mongoose.model('Player', playerSchema);
+
+async function getScore(name) {
+  const player = await Player.findOne({ name }, 'score').exec();
+  return (player && player.score) || 0;
 }
 
-function getScore(username) {
-  return scores[username] || 0;
+async function setScore(name, score) {
+  await Player.updateOne({name}, {score}, { upsert: true}).exec();
 }
 
-function setScore(username, score) {
-  scores[username] = score;
+async function getScores() {
+  return await Player.find({}, ['name', 'score']).lean();
 }
 
 io.on('connection', (socket) => {
@@ -56,7 +61,7 @@ io.on('connection', (socket) => {
     console.log(`Player deleted: player=(${thisPlayer.id}:${thisPlayer.name})`);
   });
 
-  socket.on('login', (data, fn) => {
+  socket.on('login', async (data, fn) => {
     const username = data.username;
     console.log(`Client try to login: player=(${thisPlayerId}:${username})`);
 
@@ -64,14 +69,15 @@ io.on('connection', (socket) => {
       thisPlayer = {
         id: thisPlayerId,
         name: username,
-        score: getScore(username),
+        score: await getScore(username),
         gameid: null,
       };
 
       players.set(thisPlayer.id, thisPlayer);
       _playerNameToIdMap.set(thisPlayer.name, thisPlayer.id);
 
-      socket.emit('updateScore', scores);
+      const scores = await getScores();
+      socket.emit('updateScore', {scores});
 
       for (const player of players.values()) {
         socket.emit('updatePlayer', player);
@@ -150,8 +156,11 @@ io.on('connection', (socket) => {
         io.emit('updatePlayer', player);
 
         if (getScore(player.name) != player.score) {
-          setScore(player.name, player.score);
-          io.emit('updateScore', scores);
+          setScore(player.name, player.score)
+          .then(() => getScores())
+          .then(scores => {
+            io.emit('updateScore', {scores});
+          });
         }
       },
     };
