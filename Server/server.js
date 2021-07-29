@@ -1,6 +1,11 @@
-const io = require('socket.io')(process.env.PORT || 3000);
+const http = require("http");
 const shortid = require('shortid');
 const mongoose = require('mongoose');
+
+const server = http.createServer();
+
+server.listen(process.env.PORT || 3000);
+const io = require('socket.io')(server);
 
 console.log('server started');
 

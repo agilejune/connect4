@@ -99,13 +99,6 @@ namespace SocketIO
 			sid = null;
 			packetId = 0;
 
-			ws = new WebSocket(url);
-			ws.OnOpen += OnOpen;
-			ws.OnMessage += OnMessage;
-			ws.OnError += OnError;
-			ws.OnClose += OnClose;
-			wsConnected = false;
-
 			eventQueueLock = new object();
 			eventQueue = new Queue<SocketIOEvent>();
 
@@ -138,8 +131,9 @@ namespace SocketIO
 				}
 			}
 
-			if(wsConnected != ws.IsConnected){
-				wsConnected = ws.IsConnected;
+			var newWsConnected = ws?.IsConnected ?? false;
+			if (wsConnected != newWsConnected){
+				wsConnected = newWsConnected;
 				if(wsConnected){
 					EmitEvent("connect");
 				} else {
@@ -172,6 +166,13 @@ namespace SocketIO
 		{
 			connected = true;
 
+			ws = new WebSocket(url);
+			ws.OnOpen += OnOpen;
+			ws.OnMessage += OnMessage;
+			ws.OnError += OnError;
+			ws.OnClose += OnClose;
+			wsConnected = false;
+
 			socketThread = new Thread(RunSocketThread);
 			socketThread.Start(ws);
 
@@ -181,8 +182,23 @@ namespace SocketIO
 
 		public void Close()
 		{
-			EmitClose();
-			connected = false;
+			if (ws != null)
+			{
+				EmitClose();
+				connected = false;
+
+				socketThread.Abort();
+				pingThread.Abort();
+
+				ws.Close();
+
+				ws.OnOpen -= OnOpen;
+				ws.OnMessage -= OnMessage;
+				ws.OnError -= OnError;
+				ws.OnClose -= OnClose;
+
+				ws = null;
+			}
 		}
 
 		public void On(string ev, Action<SocketIOEvent> callback)

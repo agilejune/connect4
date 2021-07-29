@@ -5,10 +5,14 @@ using SocketIO;
 using System;
 using System.Linq;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(SocketIOComponent))]
 public class Network : MonoBehaviour
 {
+    public string sceneOnDisconnect;
+    public string sceneOnError;
+
     public class Player
     {
         public string id { get; private set; }
@@ -100,6 +104,7 @@ public class Network : MonoBehaviour
     void Start()
     {
         io.On("connect", OnConnect);
+        io.On("disconnect", OnDisconnect);
         io.On("error", OnError);
 
         io.On("updateScore", OnUpdateScore);
@@ -109,6 +114,11 @@ public class Network : MonoBehaviour
 
         io.On("updateGame", OnUpdateGame);
         io.On("gameDestroyed", OnGameDestroyed);
+    }
+
+    public CustomYieldInstruction WaitForDisconnect()
+    {
+        return new WaitUntil(() => !_connected);
     }
 
     public CustomYieldInstruction WaitForConnect()
@@ -204,9 +214,28 @@ public class Network : MonoBehaviour
         Debug.Log("SocketIO connected");
     }
 
+    private void OnDisconnect(SocketIOEvent e)
+    {
+        _connected = false;
+
+        Debug.Log("SocketIO disconnected");
+
+        if (!string.IsNullOrEmpty(sceneOnDisconnect)
+            && string.Compare(SceneManager.GetActiveScene().name, sceneOnDisconnect, true) != 0)
+        {
+            SceneManager.LoadScene(sceneOnDisconnect);
+        }
+    }
+
     private void OnError(SocketIOEvent e)
     {
         Debug.LogWarning($"SocketIO error");
+
+        if (!string.IsNullOrEmpty(sceneOnError)
+            && string.Compare(SceneManager.GetActiveScene().name, sceneOnError, true) != 0)
+        {
+            SceneManager.LoadScene(sceneOnError);
+        }
     }
 
     private void OnUpdateScore(SocketIOEvent e)

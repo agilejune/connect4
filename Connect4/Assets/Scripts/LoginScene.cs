@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class LoginScene : MonoBehaviour
 {
+    public InputField serverAddressText;
     public InputField userNameText;
 
     public GameObject connectingObject;
@@ -20,9 +21,19 @@ public class LoginScene : MonoBehaviour
 
     private IEnumerator LoginCoroutine()
     {
-        yield return Network.instance.WaitForConnect();
+        var serverAddress = serverAddressText.text;
+        if (string.IsNullOrEmpty(serverAddress))
+            serverAddress = "127.0.0.1";
 
-        Debug.Log($"Socket io connected");
+        if (Network.instance.io.IsConnected)
+        {
+            Network.instance.io.Close();
+            yield return Network.instance.WaitForDisconnect();
+        }
+
+        Network.instance.io.url = $"ws://{serverAddress}/socket.io/?EIO=4&transport=websocket";
+        Network.instance.io.Connect();
+        yield return Network.instance.WaitForConnect();
 
         connectingObject.SetActive(true);
         loginErrorObject.SetActive(false);

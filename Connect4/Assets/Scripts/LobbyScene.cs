@@ -128,6 +128,11 @@ public class LobbyScene : MonoBehaviour
         }
     }
 
+    public void Logout()
+    {
+        Network.instance.io.Close();
+    }
+
     public void CreateGame()
     {
         var rows = int.Parse(rowsInput.text);
