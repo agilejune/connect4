@@ -19,6 +19,7 @@ public class LobbyScene : MonoBehaviour
 
     public InputField rowsInput;
     public InputField colsInput;
+    public InputField nInput;
 
     public string gameScene;
 
@@ -120,7 +121,7 @@ public class LobbyScene : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Failed to create game.");
+            Debug.LogWarning("Failed to join game.");
         }
     }
 
@@ -128,13 +129,19 @@ public class LobbyScene : MonoBehaviour
     {
         var rows = int.Parse(rowsInput.text);
         var cols = int.Parse(colsInput.text);
+        var n = int.Parse(nInput.text);
         if (rows > 0 && cols > 0)
-            StartCoroutine(CreateGameCoroutine(rows, cols));
+            StartCoroutine(CreateGameCoroutine(rows, cols, n));
     }
 
-    private IEnumerator CreateGameCoroutine(int rows, int cols)
+    private IEnumerator CreateGameCoroutine(int rows, int cols, int n)
     {
-        var ret = Network.instance.CreateGame(rows, cols);
+        var ret = Network.instance.CreateGame("connect", new JSONObject(obj=>
+        {
+            obj.AddField("rows", rows);
+            obj.AddField("cols", cols);
+            obj.AddField("n", n);
+        }));
         yield return ret;
 
         if (!string.IsNullOrEmpty(ret.value))

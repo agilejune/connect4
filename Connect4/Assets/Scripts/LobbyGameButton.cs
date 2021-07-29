@@ -24,7 +24,7 @@ public class LobbyGameButton : MonoBehaviour
 
     public void SetGame(Network.Game game)
     {
-        infoText.text = $"R{game.rows} X C{game.cols}";
+        //infoText.text = $"R{game.rows} X C{game.cols}";
         playerTexts[0].text = game.players.Length > 0 ? Network.instance.GetPlayerById(game.players[0]).name : string.Empty;
         playerTexts[1].text = game.players.Length > 1 ? Network.instance.GetPlayerById(game.players[1]).name : string.Empty;
 

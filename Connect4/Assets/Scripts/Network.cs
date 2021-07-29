@@ -16,15 +16,12 @@ public class Network : MonoBehaviour
         public int score { get; private set; }
         public string gameid { get; private set; }
 
-        public static Player FromJson(JSONObject json)
+        public void ParseJson(JSONObject json)
         {
-            return new Player()
-            {
-                id = json["id"].str,
-                name = json["name"].str,
-                score = (int)json["score"].n,
-                gameid = json["gameid"].str,
-            };
+            id = json["id"].str;
+            name = json["name"].str;
+            score = (int)json["score"].n;
+            gameid = json["gameid"].str;
         }
     }
 
@@ -44,23 +41,23 @@ public class Network : MonoBehaviour
 
     public class Game
     {
+        private Network network;
+
+        public string type { get; private set; }
         public string id { get; private set; }
         public string owner { get; private set; }
-        public int rows { get; private set; }
-        public int cols { get; private set; }
+
+        public JSONObject data { get; private set; }
 
         public string[] players { get; private set; }
 
-        public static Game FromJson(JSONObject json)
+        public void ParseJson(JSONObject json)
         {
-            return new Game()
-            {
-                id = json["id"].str,
-                owner = json["owner"].str,
-                rows = (int)json["rows"].n,
-                cols = (int)json["cols"].n,
-                players = json["players"].list.Select(i => i.str).ToArray(),
-            };
+            type = json["type"].str;
+            id = json["id"].str;
+            owner = json["owner"].str;
+            data = json["data"];
+            players = json["players"].list.Select(i => i.str).ToArray();
         }
     }
     private Dictionary<string, Game> _games = new Dictionary<string, Game>();
@@ -144,14 +141,14 @@ public class Network : MonoBehaviour
         return ret;
     }
 
-    public FutureValue<string> CreateGame(int rows, int cols)
+    public FutureValue<string> CreateGame(string type, JSONObject data)
     {
         var ret = new FutureValue<string>();
 
         io.Emit("createGame", new JSONObject((obj) =>
         {
-            obj.AddField("rows", rows);
-            obj.AddField("cols", cols);
+            obj.AddField("type", type);
+            obj.AddField("data", data);
         }), (result) =>
         {
             result = result[0];
@@ -223,8 +220,16 @@ public class Network : MonoBehaviour
     private void OnUpdatePlayer(SocketIOEvent e)
     {
         Debug.Log("SERVER -> updatePlayer: " + e.data);
-        var player = Player.FromJson(e.data);
-        _players[player.id] = player;
+        var playerId = e.data["id"].str;
+        Player player;
+        if (_players.ContainsKey(playerId))
+            player = _players[playerId];
+        else
+        {
+            player = new Player();
+            _players[playerId] = player;
+        }
+        player.ParseJson(e.data);
         onPlayerUpdate.Invoke(player);
     }
 
@@ -243,8 +248,17 @@ public class Network : MonoBehaviour
     private void OnUpdateGame(SocketIOEvent e)
     {
         Debug.Log("SERVER -> updateGame: " + e.data);
-        var game = Game.FromJson(e.data);
-        _games[game.id] = game;
+        var gameId = e.data["id"].str;
+        Game game;
+        if (_games.ContainsKey(gameId))
+            game = _games[gameId];
+        else
+        {
+            game = new Game();
+            _games[gameId] = game;
+        }
+        game.ParseJson(e.data);
+
         onGameUpdate.Invoke(game);
     }
 
@@ -259,5 +273,4 @@ public class Network : MonoBehaviour
             onGameDestroy.Invoke(game);
         }
     }
-
 }
